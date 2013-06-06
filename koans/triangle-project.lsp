@@ -15,11 +15,47 @@
 
 "you need to write the triangle method"
 
-(define-condition triangle-error  (error) (()))
+(define-condition triangle-error  (error)
+  ((reason :initarg :reason :initform :no-reason :reader reason)))
 
+; check if the line segments are valid
+(defun triangle-is-valid (a b c)
+  (let* ((segments (list a b c))
+	 (sorted-segments (sort segments #'<)))
+
+    ; the line segments need to be of positive length
+    (loop for x in segments do
+	 (if (>= 0 x)
+	     (return-from triangle-is-valid
+	       (values nil :invalid-segment-length))))
+
+    ; check if the segments are of the right size to make a triangle
+    (if (<= (+ (first sorted-segments) (second sorted-segments))
+	    (third sorted-segments))
+	(return-from triangle-is-valid
+	  (values nil :invalid-segment-set)))
+    (values t :none)))
+
+; count same segments
+(defun triangle-count-unique-sides (a b c)
+  (let ((sides (list a b c))
+	(sides-hash (make-hash-table)))
+    (loop for s in sides do
+	 (setf (gethash s sides-hash) t))
+    (hash-table-count sides-hash)))
+
+; check triangle
 (defun triangle (a b c)
-  :write-me)
-
+  (let ((valid nil)
+	(reason nil)
+	(same-sides nil))
+    (multiple-value-setq (valid reason) (triangle-is-valid a b c))
+    (if (not valid)
+	(error 'triangle-error :reason reason))
+    (setf same-sides (triangle-count-unique-sides a b c))
+    (cond ((= same-sides 3) :scalene)
+	  ((= same-sides 2) :isosceles)
+	  (t :equilateral))))
 
 (define-test test-equilateral-triangles-have-equal-sides
     (assert-equal :equilateral (triangle 2 2 2))
