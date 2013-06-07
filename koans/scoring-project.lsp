@@ -50,23 +50,20 @@
 ; Your goal is to write the score method.
 
 (defun score (dice)
-  (let ((score-hash (make-hash-table))
+  (let ((score-array (make-array '(6) :initial-element 0))
 	(result 0))
-    (loop for d from 1 to 6 do
-	 (setf (gethash d score-hash) 0))
     (loop for d in dice do
-	 (incf (gethash d score-hash)))
-    (loop for k being the hash-keys in score-hash
-       using (hash-value v) do
-	 (if (>= v 3)
+	 (incf (aref score-array (- d 1))))
+    (loop for i from 0 to 5 do
+	 (if (>= (aref score-array i) 3)
 	     (progn
-	       (if (= k 1)
+	       (if (= i 0)
 		   (incf result 1000)
-		   (incf result (* k 100)))
-	       (decf (gethash k score-hash) 3))))
+		   (incf result (* (+ i 1) 100)))
+	       (decf (aref score-array i) 3))))
 
-    (incf result (* (gethash 1 score-hash) 100))
-    (incf result (* (gethash 5 score-hash) 50))
+    (incf result (* (aref score-array 0) 100))
+    (incf result (* (aref score-array 4) 50))
     result))
 
 (define-test test-score-of-an-empty-list-is-zero
